@@ -1,0 +1,8 @@
+.expo
+.vscode
+node_modules
+.DS_store
+*.log
+*.swp
+*.swo
+*.swm
