@@ -56,8 +56,29 @@ app.post("/addUser", async (req, res) => {
 );
 
 app.get("/getUser", async (req, res) => {
-  let users = await User.find();
+  let users = await User.find({});
   res.send(users);
   console.log(users);
   res.end();
+})
+
+app.put("/update/:id", async (req, res) => {
+  const id = req.params.id
+  const dados = req.body.name
+  const user = await User.findByIdAndUpdate(id, dados)
+  if (user) {
+    res.send({ status: "ok", message: "Usuario atualizado com sucesso" });    
+  } else {
+    res.send({ status: "error", message: "Usuario não encontrado" });
+  }
+})
+
+app.delete("/delete/:id", async (req, res) => {
+  let id = req.params.id;
+  let i = await User.findByIdAndDelete(id);
+  if(i) {
+    res.send({ status: "Deletado" })
+  } else {
+    res.send({ status: "Erro ao deletar" })
+  }
 })
