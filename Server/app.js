@@ -5,20 +5,20 @@ let cors = require("cors");
 
 let app = express();
 
-app.get("/", (req, res, next) => {
+app.use(cors());
+app.get("/", (req, res) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header(
     "Access-Control-Allow-Headers",
-    "Origin, X-Reqested-With, Content-Type, Accept"
+    "Origin, X-Requested-With, Content-Type, Accept"
   );
-  next();
+  res.send("Server is running");
 });
 
 app.listen(3000, () => {
   console.log("Server is running on http://localhost:3000");
 });
 
-app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static("public"));
@@ -39,10 +39,11 @@ mongoose
 let User = mongoose.model("Usuario", new mongoose.Schema({ name: String }));
 
 app.post("/addUser", async (req, res) => {
-    let vnome = req.body.name;
-    let item = await new User({ name: vnome })
-    // Comando do MongoDB
-    item.save()
+  let vnome = req.body.name;
+  let item = await new User({ name: vnome });
+  // Comando do MongoDB
+  item
+    .save()
     .then(() => {
       console.log("Usuario adicionado com sucesso");
       res.send("Usuario adicionado com sucesso");
@@ -51,34 +52,33 @@ app.post("/addUser", async (req, res) => {
       console.log("Erro ao adicionar usuario: " + err);
       res.send("Erro ao adicionar usuario: " + err);
     });
-    console.log(item);
-  }
-);
+  console.log(item);
+});
 
 app.get("/getUser", async (req, res) => {
   let users = await User.find({});
   res.send(users);
   console.log(users);
   res.end();
-})
+});
 
 app.put("/update/:id", async (req, res) => {
-  const id = req.params.id
-  const dados = req.body.name
-  const user = await User.findByIdAndUpdate(id, dados)
+  const id = req.params.id;
+  const dados = req.body.name;
+  const user = await User.findByIdAndUpdate(id, dados);
   if (user) {
-    res.send({ status: "ok", message: "Usuario atualizado com sucesso" });    
+    res.send({ status: "ok", message: "Usuario atualizado com sucesso" });
   } else {
     res.send({ status: "error", message: "Usuario não encontrado" });
   }
-})
+});
 
 app.delete("/delete/:id", async (req, res) => {
   let id = req.params.id;
   let i = await User.findByIdAndDelete(id);
-  if(i) {
-    res.send({ status: "Deletado" })
+  if (i) {
+    res.send({ status: "Deletado" });
   } else {
-    res.send({ status: "Erro ao deletar" })
+    res.send({ status: "Erro ao deletar" });
   }
-})
+});

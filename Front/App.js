@@ -1,7 +1,29 @@
 import { StatusBar } from "expo-status-bar";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useEffect, useState } from "react";
+import {
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import DadoExiba from "./components/Exiba";
+import { DadoInserir } from "./components/Inserir";
 
 export default function App() {
+  const [campos, setCampos] = useState([]);
+  useEffect(() => {
+    fetch("http://localhost:3000")
+      .then((response) => response.json())
+      .then((data) => {
+        console.log(data);
+        setCampos(data);
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+  }, []);
+
   const addUser = async () => {
     fetch("http://localhost:3000/addUser/", {
       method: "POST",
@@ -15,13 +37,14 @@ export default function App() {
       .then((response) => response.json())
       .then((data) => {
         console.log(data);
-      })
+      });
   };
   const Exibir = async () => {
-    fetch("http://localhost:3000/getUser/")
+    fetch("http://localhost:3000/getUser")
       .then((response) => response.json())
       .then((data) => {
         console.log(data);
+        setCampos(data);
       })
       .catch((error) => {
         console.error("Error:", error);
@@ -43,7 +66,8 @@ export default function App() {
   };
 
   const Delete = (id) => {
-    fetch(`https://localhost:3000/delete/${id}`, {
+    fetch(`http://localhost:3000/delete/${id}`, {
+      // Use http:// instead of https://
       method: "DELETE",
       headers: {
         "Content-Type": "application/json; charset=utf-8",
@@ -52,64 +76,76 @@ export default function App() {
       .then((resp) => resp.json())
       .then((json) => {
         console.log(json);
-    })
-  }
+
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+  };
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity
-        onPress={() => addUser()}
-        style={{
-          backgroundColor: "blue",
-          padding: 10,
-          borderRadius: 5,
-          marginBottom: 8,
-        }}
-      >
-        <Text style={{ color: "white", fontWeight: "bold" }}>Add User</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={() => Atualizar0("67edd7d98d2ad7a9ee604638")}
-        style={{
-          backgroundColor: "purple",
-          padding: 10,
-          borderRadius: 5,
-          marginBottom: 8,
-        }}
-      >
-        <Text style={{ color: "white", fontWeight: "bold" }}>Atualizar</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={() => Exibir()}
-        style={{
-          backgroundColor: "green",
-          padding: 10,
-          borderRadius: 5,
-          marginBottom: 8,
-        }}
-      >
-        <Text style={{ color: "white", fontWeight: "bold" }}>Exibir</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={() => Delete("67edd7d98d2ad7a9ee604638")}
-        style={{
-          backgroundColor: "red",
-          padding: 10,
-          borderRadius: 5,
-          marginBottom: 8,
-        }}
-      >
-        <Text style={{ color: "white", fontWeight: "bold" }}>Deletar</Text>
-      </TouchableOpacity>
-      <StatusBar style="auto" />
-    </View>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <TouchableOpacity
+          onPress={() => addUser()}
+          style={{
+            backgroundColor: "blue",
+            padding: 10,
+            borderRadius: 5,
+            marginBottom: 8,
+          }}
+        >
+          <Text style={{ color: "white", fontWeight: "bold" }}>Add User</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => Atualizar0("67edd7d98d2ad7a9ee604638")}
+          style={{
+            backgroundColor: "purple",
+            padding: 10,
+            borderRadius: 5,
+            marginBottom: 8,
+          }}
+        >
+          <Text style={{ color: "white", fontWeight: "bold" }}>Atualizar</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => Exibir()}
+          style={{
+            backgroundColor: "green",
+            padding: 10,
+            borderRadius: 5,
+            marginBottom: 8,
+          }}
+        >
+          <Text style={{ color: "white", fontWeight: "bold" }}>Exibir</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => Delete("67edd7d98d2ad7a9ee604638")}
+          style={{
+            backgroundColor: "red",
+            padding: 10,
+            borderRadius: 5,
+            marginBottom: 8,
+          }}
+        >
+          <Text style={{ color: "white", fontWeight: "bold" }}>Deletar</Text>
+        </TouchableOpacity>
+
+        <DadoInserir />
+        <DadoExiba campos={campos} />
+        <StatusBar style="auto" />
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
     backgroundColor: "#fff",
+  },
+  container: {
+    flex: 1,
     alignItems: "center",
     justifyContent: "center",
   },
