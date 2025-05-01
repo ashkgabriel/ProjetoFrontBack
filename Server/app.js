@@ -12,7 +12,7 @@ app.get("/", (req, res) => {
     "Access-Control-Allow-Headers",
     "Origin, X-Requested-With, Content-Type, Accept"
   );
-  res.send("Server is running");
+  res.json({ message: "Server is running" });
 });
 
 app.listen(3000, () => {
@@ -36,42 +36,13 @@ mongoose
     console.log("Erro ao conectar ao MongoDB: " + err);
   });
 
-let User = mongoose.model("Usuario", new mongoose.Schema({ name: String }));
-
-app.post("/addUser", async (req, res) => {
-  let vnome = req.body.name;
-  let item = await new User({ name: vnome });
-  // Comando do MongoDB
-  item
-    .save()
-    .then(() => {
-      console.log("Usuario adicionado com sucesso");
-      res.send("Usuario adicionado com sucesso");
-    })
-    .catch((err) => {
-      console.log("Erro ao adicionar usuario: " + err);
-      res.send("Erro ao adicionar usuario: " + err);
-    });
-  console.log(item);
+let LamenSchema = new mongoose.Schema({
+  nome: String,
+  ingredientes: [String],
+  valor: Number,
 });
 
-app.get("/getUser", async (req, res) => {
-  let users = await User.find({});
-  res.send(users);
-  console.log(users);
-  res.end();
-});
-
-app.put("/update/:id", async (req, res) => {
-  const id = req.params.id;
-  const dados = req.body.name;
-  const user = await User.findByIdAndUpdate(id, dados);
-  if (user) {
-    res.send({ status: "ok", message: "Usuario atualizado com sucesso" });
-  } else {
-    res.send({ status: "error", message: "Usuario não encontrado" });
-  }
-});
+let Lamen = mongoose.model("Lamen", LamenSchema);
 
 app.delete("/delete/:id", async (req, res) => {
   let id = req.params.id;
@@ -80,5 +51,133 @@ app.delete("/delete/:id", async (req, res) => {
     res.send({ status: "Deletado" });
   } else {
     res.send({ status: "Erro ao deletar" });
+  }
+});
+
+app.post("/addLamen", async (req, res) => {
+  try {
+    const { nome, ingredientes, valor } = req.body;
+
+    if (
+      !nome ||
+      !ingredientes ||
+      !Array.isArray(ingredientes) ||
+      valor === undefined
+    ) {
+      return res.status(400).json({
+        status: "error",
+        message: "Dados inválidos. Forneça nome, ingredientes (array) e valor",
+      });
+    }
+
+    let novoLamen = new Lamen({
+      nome,
+      ingredientes,
+      valor: Number(valor),
+    });
+
+    await novoLamen.save();
+    console.log("Lamen adicionado com sucesso:", novoLamen);
+    res.status(201).json({
+      status: "ok",
+      message: "Lamen adicionado com sucesso",
+      data: novoLamen,
+    });
+  } catch (err) {
+    console.log("Erro ao adicionar lamen:", err);
+    res
+      .status(500)
+      .json({ status: "error", message: "Erro ao adicionar lamen" });
+  }
+});
+
+app.get("/getLamen", async (req, res) => {
+  try {
+    let lamens = await Lamen.find({});
+    res.json(lamens);
+    console.log("Lamens encontrados:", lamens.length);
+  } catch (err) {
+    console.log("Erro ao buscar lamens:", err);
+    res.status(500).json({ status: "error", message: "Erro ao buscar lamens" });
+  }
+});
+
+app.get("/getLamen/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    let lamen = await Lamen.findById(id);
+
+    if (lamen) {
+      res.json(lamen);
+    } else {
+      res
+        .status(404)
+        .json({ status: "error", message: "Lamen não encontrado" });
+    }
+  } catch (err) {
+    console.log("Erro ao buscar lamen:", err);
+    res.status(500).json({ status: "error", message: "Erro ao buscar lamen" });
+  }
+});
+
+app.put("/updateLamen/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const { nome, ingredientes, valor } = req.body;
+
+    if (
+      (!nome && !ingredientes && valor === undefined) ||
+      (ingredientes && !Array.isArray(ingredientes))
+    ) {
+      return res.status(400).json({
+        status: "error",
+        message: "Dados inválidos para atualização",
+      });
+    }
+
+    const atualizacao = {};
+    if (nome) atualizacao.nome = nome;
+    if (ingredientes) atualizacao.ingredientes = ingredientes;
+    if (valor !== undefined) atualizacao.valor = Number(valor);
+
+    const lamen = await Lamen.findByIdAndUpdate(id, atualizacao, { new: true });
+
+    if (lamen) {
+      res.json({
+        status: "ok",
+        message: "Lamen atualizado com sucesso",
+        data: lamen,
+      });
+    } else {
+      res
+        .status(404)
+        .json({ status: "error", message: "Lamen não encontrado" });
+    }
+  } catch (err) {
+    console.log("Erro ao atualizar lamen:", err);
+    res
+      .status(500)
+      .json({ status: "error", message: "Erro ao atualizar lamen" });
+  }
+});
+
+app.delete("/deleteLamen/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const lamen = await Lamen.findByIdAndDelete(id);
+
+    if (lamen) {
+      res.json({
+        status: "ok",
+        message: "Lamen deletado com sucesso",
+      });
+    } else {
+      res
+        .status(404)
+        .json({ status: "error", message: "Lamen não encontrado" });
+    }
+  } catch (err) {
+    console.log("Erro ao deletar lamen:", err);
+    res.status(500).json({ status: "error", message: "Erro ao deletar lamen" });
   }
 });
